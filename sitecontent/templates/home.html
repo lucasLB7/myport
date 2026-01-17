@@ -1,8 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}Lucas // Home{% endblock %}
+{% block title %}{{ brand.name }}{% endblock %}
 
 {% block content %}
-  <h1>Home is alive ✅</h1>
-  <p>Next: terminal hero + 3D node map.</p>
+
+<!-- HERO : TEXT ONLY -->
+<section class="hero hero-text">
+  <div class="container">
+    <div class="pill">Based in {{ brand.location }}</div>
+
+    <h1 class="h1">
+      <span class="matrix" data-matrix
+            data-phrases='[
+              "{{ brand.name|escapejs }}",
+              "5Z1LL CQ CQ CQ",
+              "OSINT • SIGINT • INTEL",
+              "Where? • Who? • How?",
+              "Welcome to my site"
+            ]'>
+        {{ brand.name }}
+      </span>
+    </h1>
+
+    <div class="terminal-line">
+        <span class="prompt">&gt;</span>
+        <span class="cmd">Tracing your IP</span>
+        <span class="eq">=</span>
+        <span id="visitor-ip">detecting…</span>
+    </div>
+
+    <p class="lead" id="hero-sub">{{ brand.tagline }}</p>
+
+    <div class="hero-cta">
+      <a class="btn" href="{{ cta.primary_href }}">{{ cta.primary_text }}</a>
+      <a class="btn btn-ghost" href="{{ cta.secondary_href }}">{{ cta.secondary_text }}</a>
+    </div>
+
+    <div class="mini">
+      <span class="dot"></span>
+      <span class="muted">Direct. Practical. Systems that ship.</span>
+    </div>
+  </div>
+</section>
+
+<!-- MATRIX : VISUAL ONLY -->
+<section class="hero-matrix">
+  <div class="container">
+    <div class="matrix-shell">
+      <div class="matrix3d" data-matrix3d></div>
+
+      <div class="matrix-tip" data-matrix-tip></div>
+
+      <div class="matrix-modal" data-matrix-modal>
+        <div class="matrix-modal__backdrop" data-matrix-modal-close></div>
+        <div class="matrix-modal__panel" role="dialog" aria-modal="true">
+          <button class="matrix-modal__close" type="button" data-matrix-modal-close>✕</button>
+          <div class="matrix-modal__content" data-matrix-modal-content></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
