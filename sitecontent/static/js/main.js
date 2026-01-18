@@ -1,4 +1,4 @@
-/* main.js — drop-in (matrix header + 3D matrix with clickable nodes + modal freeze) */
+/* main.js — FULL DROP-IN (matrix header + 3D matrix clickable nodes + modal with link + modal freeze) */
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Main JS loaded");
@@ -107,6 +107,49 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.classList.remove("on");
   };
 
+  // -------------------------
+  // Modal HTML helpers
+  // -------------------------
+  const escapeHTML = (s = "") =>
+    String(s).replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[c]));
+
+  // Supports node fields:
+  // { title, desc, tags[], link } OR your older { title, text }
+  const buildModalHTML = (node) => {
+    const title = escapeHTML(node?.title || "");
+    const desc = escapeHTML(node?.desc || node?.text || "");
+    const tags = Array.isArray(node?.tags) ? node.tags : [];
+    const link = node?.link ? String(node.link) : "";
+
+    const tagsHtml = tags.length
+      ? `<div class="matrix-modal__tags">
+          ${tags.map(t => `<span class="matrix-tag">${escapeHTML(t)}</span>`).join("")}
+         </div>`
+      : "";
+
+    const linkHtml = link
+      ? `<div class="matrix-modal__linkwrap">
+          <a class="matrix-modal__link" href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer">
+            Open project ↗
+          </a>
+          <div class="matrix-modal__url">${escapeHTML(link)}</div>
+         </div>`
+      : "";
+
+    return `
+      <strong>${title}</strong><br>
+      <span class="muted">${desc}</span>
+      ${tagsHtml}
+      ${linkHtml}
+    `;
+  };
+
   // Freeze control
   let paused = false;
 
@@ -173,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
   pointsGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
   const pointsMat = new THREE.PointsMaterial({
-    size: 0.10, // 0.08–0.14 is good
+    size: 0.10,
     transparent: true,
     opacity: 0.9,
   });
@@ -191,12 +234,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const lines = new THREE.LineSegments(lineGeo, lineMat);
   group.add(lines);
 
-  // Special clickable nodes with unique colors
+  // Special clickable nodes (now supports desc/tags/link)
   const specialConfig = [
-    { idx: 5,  color: 0xffd000, title: "EagleVision",   text: "Multi-frame ALPR recovery for Kenyan plates. Fusion + probabilistic OCR." },
-    { idx: 18, color: 0x22c55e, title: "HAM Study App", text: "Django quiz platform with images + Cloud SQL Postgres on GAE." },
-    { idx: 41, color: 0xff7a18, title: "RF / Field",    text: "Antennas, SDR scanning, LoRa nodes, embedded prototypes." },
-    { idx: 63, color: 0x60a5fa, title: "Ops & Build",   text: "Pragmatic systems: constraints, deployment, reliability." },
+    {
+      idx: 5,
+      color: 0xffd000,
+      title: "EagleVision",
+      desc: "Multi-frame ALPR recovery for Kenyan plates. Fusion + probabilistic OCR.",
+      tags: ["Computer Vision", "ALPR", "Kenya"],
+    },
+    {
+      idx: 18,
+      color: 0x22c55e,
+      title: "HAM Study App",
+      desc: "Django quiz platform with images + Cloud SQL Postgres on GAE.",
+      tags: ["RSK", "HAM radio", "Kenya Radio Society"],
+      link: "https://rsk-ham-study.appspot.com/",
+    },
+    {
+      idx: 41,
+      color: 0xff7a18,
+      title: "RF / Field",
+      desc: "Antennas, SDR scanning, LoRa nodes, embedded prototypes.",
+      tags: ["RF", "SDR", "LoRa", "Embedded"],
+    },
+    {
+      idx: 63,
+      color: 0x60a5fa,
+      title: "Ops & Build",
+      desc: "Pragmatic systems: constraints, deployment, reliability.",
+      tags: ["Deployment", "Reliability", "Systems"],
+    },
   ];
 
   const specialMeshes = [];
@@ -272,7 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const hit = hits[0].object;
     pause();
-    openModal(`<strong>${hit.userData.title}</strong><br><span class="muted">${hit.userData.text}</span>`);
+    openModal(buildModalHTML(hit.userData));
   });
 
   function tick() {
@@ -334,7 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (hits.length) {
         const hit = hits[0].object;
         hit.userData.targetScale = 2.2;
-        setTip(`<strong>${hit.userData.title}</strong><br><span class="muted">Click to open</span>`);
+        setTip(`<strong>${escapeHTML(hit.userData.title)}</strong><br><span class="muted">Click to open</span>`);
         mount.style.cursor = "pointer";
       } else {
         setTip("");
@@ -361,23 +429,12 @@ document.addEventListener("DOMContentLoaded", () => {
   tick();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    const ipEl = document.getElementById("visitor-ip");
-    if (!ipEl) return;
-
-    fetch("/api/visitor-ip/")
-        .then(res => res.json())
-        .then(data => {
-            ipEl.textContent = data.ip || "unknown";
-        })
-        .catch(() => {
-            ipEl.textContent = "unavailable";
-        });
-});
-
+// =========================
+// 3) Visitor Geo/IP (single source of truth)
+// =========================
 fetch("/geoip/")
-  .then(r => r.json())
-  .then(data => {
+  .then((r) => r.json())
+  .then((data) => {
     console.log("IP/Country:", data.ip, data.country);
 
     const ipEl = document.getElementById("visitor-ip");
@@ -389,7 +446,7 @@ fetch("/geoip/")
     if (ipEl) ipEl.textContent = ip;
     if (countryEl) countryEl.textContent = country;
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("GeoIP failed:", err);
     const ipEl = document.getElementById("visitor-ip");
     const countryEl = document.getElementById("visitor-country");
