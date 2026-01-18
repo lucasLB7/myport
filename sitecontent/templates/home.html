@@ -47,6 +47,27 @@
     </div>
   </div>
 </section>
+<section class="gpt-terminal">
+  <div class="terminal-shell">
+    <div class="terminal-header">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="terminal-title">lucas@matrix:~ gpt</span>
+    </div>
+
+    <div class="terminal-output" id="gpt-output" aria-live="polite"></div>
+
+    <form class="terminal-inputbar" id="gpt-form" autocomplete="off">
+      <span class="terminal-prompt">❯</span>
+      <input
+        id="gpt-input"
+        type="text"
+        placeholder="ask about projects, type 'help'..."
+        maxlength="500"
+      />
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</section>
 
 <!-- MATRIX : VISUAL ONLY -->
 <section class="hero-matrix">

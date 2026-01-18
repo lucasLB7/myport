@@ -7,6 +7,11 @@ try:
 except Exception:
     GeoIP2 = None
 
+from openai import OpenAI
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+
 
 def home(request):
     ctx = {
@@ -82,3 +87,52 @@ def geoip_lookup(request):
             pass
 
     return JsonResponse({"ip": ip, "country": country})
+
+
+
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+from openai import OpenAI
+
+client = OpenAI()
+
+SYSTEM_PROMPT = (
+    "You are the embedded terminal assistant on Lucas' portfolio site. "
+    "Be concise, practical, slightly hacker-ish."
+)
+
+@csrf_exempt
+@require_POST
+def gpt_terminal(request):
+    # --- robust JSON parsing ---
+    raw = request.body.decode("utf-8", errors="replace") if request.body else ""
+    try:
+        payload = json.loads(raw) if raw.strip() else {}
+    except json.JSONDecodeError:
+        # return what we received (first 300 chars) so debugging is painless
+        return JsonResponse(
+            {"error": "Invalid JSON", "received": raw[:300]},
+            status=400,
+        )
+
+    msg = (payload.get("message") or "").strip()
+    if not msg:
+        return JsonResponse({"error": "Missing 'message' field"}, status=400)
+
+    if len(msg) > 500:
+        return JsonResponse({"error": "Message too long"}, status=400)
+
+    try:
+        resp = client.responses.create(
+            model="gpt-4o-mini",
+            input=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": msg},
+            ],
+        )
+        return JsonResponse({"reply": resp.output_text})
+    except Exception as e:
+        return JsonResponse({"error": "OpenAI request failed", "detail": str(e)}, status=500)

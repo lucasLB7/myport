@@ -441,3 +441,56 @@ input:focus, textarea:focus{border-color: rgba(45,212,191,.45)}
   text-decoration: none;
 }
 .matrix-cta:hover{ background: rgba(255,255,255,.12); }
+.gpt-terminal { padding: 18px 0; }
+.terminal-shell {
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+}
+.terminal-header {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.terminal-header .dot {
+  width:10px; height:10px; border-radius:999px;
+  background: rgba(255,255,255,0.35);
+}
+.terminal-title { opacity: 0.8; font-size: 12px; margin-left: 6px; }
+.terminal-output {
+  padding: 12px;
+  min-height: 160px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.terminal-line { margin: 0 0 10px 0; }
+.terminal-user { opacity: 0.95; }
+.terminal-bot { opacity: 0.85; }
+.terminal-inputbar {
+  display:flex; align-items:center; gap:10px;
+  padding: 10px 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.terminal-prompt { opacity: 0.8; font-family: ui-monospace, monospace; }
+#gpt-input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: inherit;
+  outline: none;
+}
+.terminal-inputbar button {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}

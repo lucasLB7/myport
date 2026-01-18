@@ -453,3 +453,60 @@ fetch("/geoip/")
     if (ipEl) ipEl.textContent = "unavailable";
     if (countryEl) countryEl.textContent = "unknown location";
   });
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const out = document.getElementById("gpt-output");
+  const form = document.getElementById("gpt-form");
+  const input = document.getElementById("gpt-input");
+  if (!out || !form || !input) return;
+
+  const println = (text, cls) => {
+    const div = document.createElement("div");
+    div.className = `terminal-line ${cls || ""}`;
+    div.textContent = text;
+    out.appendChild(div);
+    out.scrollTop = out.scrollHeight;
+  };
+
+  println("type 'help' for ideas. (ex: 'summarize EagleVision', 'what should I build next?')", "terminal-bot");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    println(`❯ ${msg}`, "terminal-user");
+    input.value = "";
+    input.disabled = true;
+
+    // quick local “help”
+    if (msg.toLowerCase() === "help") {
+      println("Try: 'list projects', 'explain ham study app', 'red-team EagleVision', 'suggest next features'", "terminal-bot");
+      input.disabled = false;
+      input.focus();
+      return;
+    }
+
+    println("…", "terminal-bot");
+
+    try {
+      const res = await fetch("/api/gpt/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg }),
+      });
+
+      const data = await res.json();
+
+      // replace the last "…" line
+      out.lastChild.textContent =
+      data.reply ||
+     (data.error ? `${data.error}${data.detail ? " — " + data.detail : ""}` : "No response");
+    } catch (err) {
+      out.lastChild.textContent = "Request failed.";
+    } finally {
+      input.disabled = false;
+      input.focus();
+    }
+  });
+});
