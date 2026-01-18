@@ -374,3 +374,25 @@ document.addEventListener("DOMContentLoaded", () => {
             ipEl.textContent = "unavailable";
         });
 });
+
+fetch("/geoip/")
+  .then(r => r.json())
+  .then(data => {
+    console.log("IP/Country:", data.ip, data.country);
+
+    const ipEl = document.getElementById("visitor-ip");
+    const countryEl = document.getElementById("visitor-country");
+
+    const ip = data.ip ?? "unavailable";
+    const country = data.country ?? "unknown location";
+
+    if (ipEl) ipEl.textContent = ip;
+    if (countryEl) countryEl.textContent = country;
+  })
+  .catch(err => {
+    console.error("GeoIP failed:", err);
+    const ipEl = document.getElementById("visitor-ip");
+    const countryEl = document.getElementById("visitor-country");
+    if (ipEl) ipEl.textContent = "unavailable";
+    if (countryEl) countryEl.textContent = "unknown location";
+  });

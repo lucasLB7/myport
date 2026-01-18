@@ -1,12 +1,18 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 
+try:
+    # Requires GeoIP2 + GeoLite2 DB configured
+    from django.contrib.gis.geoip2 import GeoIP2
+except Exception:
+    GeoIP2 = None
+
+
 def home(request):
-    # Later: load these from DB (SiteSettings, Project, etc.)
     ctx = {
         "brand": {
             "name": "Lucas Lambert",
-            "tagline": "Builder of practical systems — business, RF, IoT, and software.",
+            "tagline": "Strategy, systems, and execution that ship.",
             "location": "Nairobi, Kenya",
         },
         "cta": {
@@ -25,13 +31,13 @@ def home(request):
                 "title": "EagleVision (ALPR recovery)",
                 "desc": "Multi-frame tracking + rectification + probabilistic OCR for Kenyan plates.",
                 "tags": ["Python", "OpenCV", "OCR"],
-                "link": "#",
+                "link": "",
             },
             {
                 "title": "HAM Study App",
                 "desc": "Quiz platform with images + Cloud SQL Postgres integration on GAE.",
-                "tags": ["Django", "Postgres", "GCP"],
-                "link": "#",
+                "tags": ["RSK", "HAM radio", "Kenya Radio Society"],
+                "link": "https://rsk-ham-study.appspot.com/",
             },
             {
                 "title": "GPS Telemetry System",
@@ -48,10 +54,31 @@ def home(request):
     }
     return render(request, "home.html", ctx)
 
+
 def visitor_ip(request):
-    ip = (
-        request.META.get("HTTP_CF_CONNECTING_IP")
-        or request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0]
-        or request.META.get("REMOTE_ADDR")
-    )
+    xff = request.META.get("HTTP_X_FORWARDED_FOR")
+    xri = request.META.get("HTTP_X_REAL_IP")
+    remote = request.META.get("REMOTE_ADDR")
+
+    if xff:
+        ip = xff.split(",")[0].strip()
+    elif xri:
+        ip = xri.strip()
+    else:
+        ip = remote
+
     return JsonResponse({"ip": ip})
+
+def geoip_lookup(request):
+    # pick the IP the same way you likely did before
+    xff = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ip = xff.split(",")[0].strip() if xff else request.META.get("REMOTE_ADDR")
+
+    country = "unknown location"
+    if ip:
+        try:
+            country = GeoIP2().country(ip).get("country_name") or country
+        except Exception:
+            pass
+
+    return JsonResponse({"ip": ip, "country": country})
